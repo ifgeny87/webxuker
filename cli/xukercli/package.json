@@ -17,16 +17,13 @@
 	},
 	"oclif": {
 		"bin": "xuker",
-		"dirname": "xuker",
+		"dirname": "cli/xukercli",
 		"commands": "./build/commands",
 		"topicSeparator": " ",
 		"topics": {
 			"test": {
 				"description": "Test operations"
 			}
-		},
-		"macos": {
-			"identifier": "com.xuker.cli"
 		}
 	},
 	"scripts": {
