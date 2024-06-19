@@ -1,5 +1,12 @@
 # Semantic Versioning Changelog
 
+# [1.2.0](https://github.com/ifgeny87/webxuker/compare/v1.1.0...v1.2.0) (2024-06-19)
+
+
+### Features
+
+* cli config ([b2099db](https://github.com/ifgeny87/webxuker/commit/b2099db9085335f1a80eacd0b21d05e19e7f85ed))
+
 # [1.1.0](https://github.com/ifgeny87/webxuker/compare/v1.0.0...v1.1.0) (2024-06-19)
 
 
