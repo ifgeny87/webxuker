@@ -45,8 +45,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"cp package.json build/",
-					"cp package-lock.json build/npm-shrinkwrap.json"
+					"echo Done"
 				],
 				"parallel": false
 			}

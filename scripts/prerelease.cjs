@@ -5,18 +5,18 @@
 const fs = require('fs');
 const { resolve } = require('path');
 
+const rootPackageFile = resolve(__dirname, '..', 'package.json');
 const buildDir = resolve(__dirname, '..', 'build');
-const buildPackageFile = resolve(buildDir, 'package.json');
-const servicePackageFile = resolve(buildDir, 'services', 'webxuker', 'package.json');
+const buildServiceDir = resolve(buildDir, 'services', 'webxuker');
+const servicePackageFile = resolve(buildServiceDir, 'package.json');
 
 // read
-const buildPackage = JSON.parse(fs.readFileSync(buildPackageFile).toString());
+const buildPackage = JSON.parse(fs.readFileSync(rootPackageFile).toString());
 const servicePackage = JSON.parse(fs.readFileSync(servicePackageFile).toString());
 
 // update service package
-['type', 'dependencies'].forEach(key => {
-	delete servicePackage[key];
-});
+delete servicePackage.type;
+delete servicePackage.dependencies.commonlib;
 ['version', 'author', 'license', 'repository', 'bugs', 'homepage'].forEach(key => {
 	servicePackage[key] = buildPackage[key];
 });
@@ -27,9 +27,9 @@ fs.writeFileSync(servicePackageFile, JSON.stringify(servicePackage, null, '\t'))
 // move files
 ['webxuker.js', 'webxuker.js.map', 'package.json'].forEach(fileName => {
 	fs.renameSync(
-		resolve(buildDir, 'services', 'webxuker', fileName),
+		resolve(buildServiceDir, fileName),
 		resolve(buildDir, fileName));
 });
 
 // drop some build files
-fs.rmdirSync(resolve(buildDir, 'services'), { recursive: true });
+fs.rmSync(resolve(buildDir, 'services'), { recursive: true });

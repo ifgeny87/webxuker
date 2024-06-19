@@ -3,12 +3,14 @@ import { Command, Flags } from '@oclif/core';
 import { render, Text } from 'ink';
 import { formatError } from '../helpers/index.js';
 import { ErrorFragment, SpinnerText } from '../components/index.js';
-import { InstallServiceTool, IReleaseInfo } from '../tools/index.js';
+import { InstallServiceTool, IReleaseInfo, ConfigurationTool } from '../tools/index.js';
 
 interface IInstallProps
 {
 	path: string;
 }
+
+const configTool = new ConfigurationTool();
 
 function InstallComponent(props: IInstallProps): JSX.Element {
 	const [logs, setLogs] = useState<string[]>([]);
@@ -44,6 +46,7 @@ function InstallComponent(props: IInstallProps): JSX.Element {
 			})
 			.then(() => {
 				pushLog(`Package installed to ${props.path}`);
+				configTool.setInstallationPath(props.path);
 				setDone(true);
 			})
 			.catch((error: Error | unknown) => {
