@@ -1,0 +1,38 @@
+{
+	"name": "@ifgeny87/webxukercli",
+	"version": "1.0.0",
+	"engines": {
+		"node": ">=18.1.0"
+	},
+	"type": "module",
+	"types": "build/index.d.ts",
+	"author": "ifgeny87",
+	"license": "ISC",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ifgeny87/xuker.git"
+	},
+	"bin": {
+		"xuker": "./bin/run.js"
+	},
+	"oclif": {
+		"bin": "xuker",
+		"dirname": "xuker",
+		"commands": "./build/commands",
+		"topicSeparator": " ",
+		"topics": {
+			"test": {
+				"description": "Test operations"
+			}
+		},
+		"macos": {
+			"identifier": "com.xuker.cli"
+		}
+	},
+	"scripts": {
+		"dev": "./bin/dev.js",
+		"build": "rm -rf dist && tsc -b tsconfig.app.json",
+		"prepack": "node ./scripts/prepack.cjs",
+		"postpack": "mv package.json_BACKUP package.json"
+	}
+}

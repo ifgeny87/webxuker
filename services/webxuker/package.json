@@ -1,0 +1,7 @@
+{
+	"name": "webxuker-service",
+	"type": "module",
+	"dependencies": {
+		"commonlib": "*"
+	}
+}

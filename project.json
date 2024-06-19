@@ -1,0 +1,58 @@
+{
+	"name": "@ifgeny87/webxuker",
+	"$schema": "node_modules/nx/schemas/project-schema.json",
+	"implicitDependencies": [
+		"webxuker"
+	],
+	"projectType": "application",
+	"targets": {
+		"release": {
+			"dependsOn": [
+				{
+					"target": "build",
+					"projects": "self"
+				}
+			],
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"rm -rf dist",
+					"semantic-release"
+				]
+			}
+		},
+		"build": {
+			"dependsOn": [
+				{
+					"target": "build",
+					"projects": "dependencies"
+				}
+			],
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cp README.md build/",
+					"cp package.json build/",
+					"cp deploy/webxuker.service build/",
+					"cp deploy/webxuker_run.sh build/",
+					"cp package-lock.json build/npm-shrinkwrap.json"
+				],
+				"parallel": false
+			}
+		},
+		"lint": {
+			"dependsOn": [
+				{
+					"target": "lint",
+					"projects": "dependencies"
+				}
+			],
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["echo Done"],
+				"parallel": false
+			}
+		}
+	},
+	"tags": []
+}

@@ -1,0 +1,67 @@
+{
+	"name": "webxuker",
+	"$schema": "node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "services/webxuker/src",
+	"projectType": "application",
+	"targets": {
+		"build": {
+			"executor": "@nrwl/esbuild:esbuild",
+			"outputs": ["{options.outputPath}"],
+			"defaultConfiguration": "production",
+			"options": {
+				"format": ["cjs"],
+				"platform": "node",
+				"outputPath": "build/services/webxuker",
+				"outputFileName": "webxuker.js",
+				"main": "services/webxuker/src/main.ts",
+				"tsConfig": "services/webxuker/tsconfig.app.json",
+				"thirdParty": false,
+				"esbuildOptions": {
+					"sourcemap": true,
+					"outExtension": {
+						".js": ".js"
+					}
+				}
+			},
+			"configurations": {
+				"development": {},
+				"production": {
+					"esbuildOptions": {
+						"sourcemap": false,
+						"outExtension": {
+							".js": ".js"
+						}
+					}
+				}
+			}
+		},
+		"serve": {
+			"executor": "@nx/node:node",
+			"defaultConfiguration": "development",
+			"options": {
+				"buildTarget": "webxuker:build",
+				"runtimeArgs": [
+					"--cfg=./dev/config.json"
+				],
+				"inspect": "inspect",
+				"watch": true
+			},
+			"configurations": {
+				"development": {
+					"buildTarget": "webxuker:build:development"
+				},
+				"production": {
+					"buildTarget": "webxuker:build:production"
+				}
+			}
+		},
+		"lint": {
+			"executor": "@nrwl/linter:eslint",
+			"outputs": ["{options.outputFile}"],
+			"options": {
+				"lintFilePatterns": ["services/webxuker/src/**/*.ts"]
+			}
+		}
+	},
+	"tags": []
+}

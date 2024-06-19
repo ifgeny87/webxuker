@@ -1,0 +1,6 @@
+*
+!bin/*
+!build/**/*.d.ts
+!build/**/*.js
+!package.json
+!README.md

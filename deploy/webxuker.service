@@ -1,0 +1,35 @@
+# Webxuker service
+#
+# Filename: webxuker.service
+# Author: Makarov Evgeny
+# Date: 2022-03-11
+#
+# Doc of this file: https://gist.github.com/maliarslan/a50c5f335a18ebb31068663cabec98af
+# After=network.target means our service will start after the network is up and running
+# Type=simple specify that how our app launch itself. Simple means it won't drop user priviliges
+# User=username tells that our app will run as the unprivileged user unless you want to run it by root
+# ExecStart=/usr/bin/node /home/username/mygreatestapp/mygreatestapp.js tells systemd the location of our app and what command it should run
+# Restart=on-failure clearly says under what condition system restart our service. But if you stop the service it won't restart itself.
+# WantedBy=multi-user.target specify how our service should be enabled
+#
+# Steps:
+# 1) Place it file to /lib/systemd/system/ with root
+# 2) Update services: `systemctl daemon-reload`
+# 3) Run: `systemctl start|status|stop <filename>`
+#
+# Setup autorun on startup:
+# `systemctl enable|disable <filename>`
+
+[Unit]
+Description=Webxuker
+After=network.target
+
+[Service]
+Type=simple
+# docker commands need root access
+User=root
+ExecStart=/bin/bash /opt/webxuker/webxuker_run.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

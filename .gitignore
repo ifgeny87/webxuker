@@ -1,0 +1,14 @@
+# Cache
+.DS_Store
+node_modules/
+
+# Build
+build/
+dist/
+
+# Archived files
+*.zip
+*.gz
+
+# Temp files
+tmp/
