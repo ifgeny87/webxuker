@@ -16,13 +16,27 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
+					"node ./scripts/prerelease.cjs",
 					"rm -rf dist",
 					"semantic-release"
+				],
+				"parallel": false
+			}
+		},
+		"clearbuild": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"rm -rf build"
 				]
 			}
 		},
 		"build": {
 			"dependsOn": [
+				{
+					"target": "clearbuild",
+					"projects": "self"
+				},
 				{
 					"target": "build",
 					"projects": "dependencies"
@@ -31,10 +45,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"cp README.md build/",
 					"cp package.json build/",
-					"cp deploy/webxuker.service build/",
-					"cp deploy/webxuker_run.sh build/",
 					"cp package-lock.json build/npm-shrinkwrap.json"
 				],
 				"parallel": false

@@ -1,11 +1,23 @@
 import * as fs from 'fs';
-import { Axios } from 'axios';
+import * as path from 'path';
+import axios, { Axios, AxiosResponse } from 'axios';
+import * as tar from 'tar';
+import { ISpawnResult, spawnChild } from '../helpers/index.js';
 
 const REPO = 'ifgeny87/webxuker';
 
+export interface IReleaseInfo
+{
+	tagName: string;
+	assetName: string;
+	assetSize: number;
+	assetURL: string;
+}
+
 export class InstallServiceTool
 {
-	constructor(private readonly installationPath: string) {}
+	constructor(private readonly installationPath: string) {
+	}
 
 	async checkInstallationPath(): Promise<void> {
 		const exists = fs.existsSync(this.installationPath);
@@ -21,7 +33,7 @@ export class InstallServiceTool
 		}
 	}
 
-	async getLastReleaseURL(): Promise<string> {
+	async getLastReleaseURL(): Promise<IReleaseInfo> {
 		const client = new Axios({
 			baseURL: `https://api.github.com/repos/${REPO}`,
 		});
@@ -33,6 +45,80 @@ export class InstallServiceTool
 		if (!releaseInfo.assets) {
 			throw new Error('Latest release not found');
 		}
-		return 'ok';
+		if (releaseInfo.assets.length !== 1) {
+			throw new Error('Latest release contains more than one asset');
+		}
+		return {
+			tagName: releaseInfo.tag_name,
+			assetName: releaseInfo.assets[0].name,
+			assetSize: releaseInfo.assets[0].size,
+			assetURL: releaseInfo.assets[0].browser_download_url,
+		};
+	}
+
+	async downloadAsset(releaseInfo: IReleaseInfo): Promise<string> {
+		// check and create directory
+		const exists = fs.existsSync(this.installationPath);
+		if (!exists) {
+			fs.mkdirSync(this.installationPath);
+		}
+		return await axios({
+			url: releaseInfo.assetURL,
+			responseType: 'stream',
+		})
+			.then(async (response: AxiosResponse) => {
+				const destFile = path.resolve(this.installationPath, releaseInfo.assetName);
+				const stream = fs.createWriteStream(destFile);
+				return new Promise<string>(resolve => {
+					stream.once('close', () => {
+						resolve(destFile);
+					});
+					response.data.pipe(stream);
+				});
+			});
+	}
+
+	async unpackAsset(destFile: string): Promise<void> {
+		await tar.extract({
+			file: destFile,
+			cwd: this.installationPath,
+		});
+	}
+
+	async install(): Promise<void> {
+		// install node modules
+		const packageCwd = path.resolve(this.installationPath, 'package');
+		let res: ISpawnResult = await spawnChild('npm', ['ci', '--omit=dev'], packageCwd);
+		if (res.code) {
+			throw new Error([
+				'Cannot install node modules',
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
+		// create script
+		const appPath = path.resolve(packageCwd, 'services', 'webxuker', 'webxuker.js');
+		const script = `node ${appPath}`;
+		const scriptPath = path.resolve(packageCwd, 'webxuker');
+		fs.writeFileSync(scriptPath, script);
+		// chmod
+		res = await spawnChild('chmod', ['+x', scriptPath]);
+		if (res.code) {
+			throw new Error([
+				`Cannot set executable flag to ${scriptPath}`,
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
+		// create link
+		const binPath = `/usr/bin/webxuker`;
+		res = await spawnChild('ln', ['-s', scriptPath, binPath]);
+		if (res.code) {
+			throw new Error([
+				`Cannot create application link ${binPath} from ${scriptPath}`,
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
 	}
 }

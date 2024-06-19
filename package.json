@@ -1,5 +1,5 @@
 {
-	"name": "@ifgeny/webxuker",
+	"name": "@ifgeny87/webxuker",
 	"version": "1.0.0",
 	"engines": {
 		"node": ">=18.1.0"
@@ -9,7 +9,6 @@
 		"email": "ifgeny87@gmail.com"
 	},
 	"license": "ISC",
-	"private": true,
 	"repository": {
 		"type": "git",
 		"url": "git+git@github.com:ifgeny87/webxuker"
@@ -28,6 +27,7 @@
 		"moment": "^2.30.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
+		"tar": "^7.4.0",
 		"zod": "^3.23.8"
 	},
 	"scripts": {
@@ -56,6 +56,7 @@
 		"@types/node": "^18.11.18",
 		"@types/react": "^18.2.63",
 		"@types/react-dom": "^18.2.19",
+		"@types/tar": "^6.1.13",
 		"@typescript-eslint/eslint-plugin": "^5.48.2",
 		"@typescript-eslint/parser": "^5.48.2",
 		"esbuild": "^0.17.17",

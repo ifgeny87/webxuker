@@ -3,7 +3,7 @@ import { Command, Flags } from '@oclif/core';
 import { render, Text } from 'ink';
 import { formatError } from '../helpers/index.js';
 import { ErrorFragment, SpinnerText } from '../components/index.js';
-import { InstallServiceTool } from '../tools/index.js';
+import { InstallServiceTool, IReleaseInfo } from '../tools/index.js';
 
 interface IInstallProps
 {
@@ -11,39 +11,45 @@ interface IInstallProps
 }
 
 function InstallComponent(props: IInstallProps): JSX.Element {
-	const [logs] = useState<string[]>([]);
+	const [logs, setLogs] = useState<string[]>([]);
 	const [tool] = useState(new InstallServiceTool(props.path));
 	const [done, setDone] = useState(false);
 	const [spinnerText, setSpinnerText] = useState<string>();
-	const [step, setStep] = useState(0);
 	const [error, setError] = useState<string>();
 
 	function pushLog(message: string): void {
-		logs.push(message);
+		setLogs([...logs, message]);
 	}
 
 	useEffect(() => {
-		switch (step) {
-			case 0:
-				tool.checkInstallationPath()
-					.then(() => {
-						pushLog('Installation path checking done');
-						setStep(1);
-					})
-					.catch((error: Error | unknown) => {
-						setError(formatError(error));
-					});
-				break;
-			case 1:
-				tool.getLastReleaseURL()
-					.then((url: string) => {
-
-					})
-					.catch((error: Error | unknown) => {
-						setError(formatError(error));
-					});
-		}
-	}, [step]);
+		tool.checkInstallationPath()
+			.then(() => {
+				pushLog('Installation path checking done');
+				return tool.getLastReleaseURL();
+			})
+			.then((releaseInfo: IReleaseInfo) => {
+				pushLog(`Found release ${releaseInfo.tagName}`);
+				setSpinnerText(`Downloading asset ${releaseInfo.assetName} (${releaseInfo.assetSize} bytes)...`);
+				return tool.downloadAsset(releaseInfo);
+			})
+			.then((destFile: string) => {
+				pushLog(`Asset downloaded to ${destFile}`);
+				setSpinnerText(`Unpacking ${destFile}...`);
+				return tool.unpackAsset(destFile);
+			})
+			.then(() => {
+				pushLog('Unpacked');
+				setSpinnerText('Installation package...');
+				return tool.install();
+			})
+			.then(() => {
+				pushLog(`Package installed to ${props.path}`);
+				setDone(true);
+			})
+			.catch((error: Error | unknown) => {
+				setError(formatError(error));
+			});
+	}, []);
 
 	const renderResult = (): JSX.Element => {
 		return <>

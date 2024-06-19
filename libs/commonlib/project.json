@@ -4,27 +4,6 @@
 	"sourceRoot": "libs/commonlib/src",
 	"projectType": "library",
 	"targets": {
-		"build": {
-			"executor": "@nrwl/js:tsc",
-			"outputs": ["{options.outputPath}"],
-			"options": {
-				"outputPath": "build/libs/commonlib",
-				"main": "libs/commonlib/src/index.ts",
-				"tsConfig": "libs/commonlib/tsconfig.lib.json"
-			},
-			"defaultConfiguration": "production",
-			"configurations": {
-				"development": {},
-				"production": {
-					"esbuildOptions": {
-						"sourcemap": false,
-						"outExtension": {
-							".js": ".js"
-						}
-					}
-				}
-			}
-		},
 		"lint": {
 			"executor": "@nrwl/linter:eslint",
 			"outputs": ["{options.outputFile}"],
