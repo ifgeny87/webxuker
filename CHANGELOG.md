@@ -1,5 +1,12 @@
 # Semantic Versioning Changelog
 
+# [1.1.0](https://github.com/ifgeny87/webxuker/compare/v1.0.0...v1.1.0) (2024-06-19)
+
+
+### Features
+
+* small package ([989fce2](https://github.com/ifgeny87/webxuker/commit/989fce281d3ab93c3c424d88799f3154e5965cb9))
+
 # 1.0.0 (2024-06-19)
 
 
