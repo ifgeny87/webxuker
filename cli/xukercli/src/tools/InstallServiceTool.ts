@@ -5,6 +5,7 @@ import * as tar from 'tar';
 import { ISpawnResult, spawnChild } from '../helpers/index.js';
 
 const REPO = 'ifgeny87/webxuker';
+const BIN_PATH = '/usr/local/bin/webxuker';
 
 export interface IReleaseInfo
 {
@@ -19,6 +20,13 @@ export class InstallServiceTool
 	constructor(private readonly installationPath: string) {}
 
 	async checkInstallationPath(): Promise<void> {
+		// check is application is already installed
+		const lnExists = fs.existsSync(BIN_PATH);
+		if (lnExists) {
+			const binPath = fs.readlinkSync(BIN_PATH);
+			throw new Error(`Application already installed in ${binPath}. You can check it with "ls -la $(which webxuker)".\nNow you can uninstall or update previous version.`);
+		}
+		// check installation directory
 		const exists = fs.existsSync(this.installationPath);
 		if (!exists) return; // path does not exist
 		const stat = fs.statSync(this.installationPath);
@@ -87,8 +95,7 @@ export class InstallServiceTool
 	async install(): Promise<void> {
 		// install node modules
 		const packageCwd = path.resolve(this.installationPath, 'package');
-		/*
-		let res: ISpawnResult = await spawnChild('npm', ['ci', '--omit=dev'], packageCwd);
+		let res: ISpawnResult = await spawnChild('npm', ['i', '--omit=dev'], packageCwd);
 		if (res.code) {
 			throw new Error([
 				'Cannot install node modules',
@@ -96,14 +103,12 @@ export class InstallServiceTool
 				res.stdout,
 			].filter(Boolean).join('\n'));
 		}
-		 */
 		// create script
-		const appPath = path.resolve(packageCwd, 'services', 'webxuker', 'webxuker.js');
-		const script = `node ${appPath}`;
+		const script = `cd ${packageCwd} && node webxuker.js`;
 		const scriptPath = path.resolve(packageCwd, 'webxuker');
 		fs.writeFileSync(scriptPath, script);
 		// chmod
-		let res: ISpawnResult = await spawnChild('chmod', ['+x', scriptPath]);
+		res = await spawnChild('chmod', ['+x', scriptPath]);
 		if (res.code) {
 			throw new Error([
 				`Cannot set executable flag to ${scriptPath}`,
@@ -112,11 +117,10 @@ export class InstallServiceTool
 			].filter(Boolean).join('\n'));
 		}
 		// create link
-		const binPath = `/usr/bin/webxuker`;
-		res = await spawnChild('ln', ['-s', scriptPath, binPath]);
+		res = await spawnChild('ln', ['-s', scriptPath, BIN_PATH]);
 		if (res.code) {
 			throw new Error([
-				`Cannot create application link ${binPath} from ${scriptPath}`,
+				`Cannot create application link ${BIN_PATH} from ${scriptPath}`,
 				res.stderr,
 				res.stdout,
 			].filter(Boolean).join('\n'));

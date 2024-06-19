@@ -1,10 +1,21 @@
-import { readConfig, writeConfig } from '../models/index.js';
+import * as fs from 'fs';
+import { readConfig, writeConfig, AppConfiguration } from '../models/index.js';
 
-const CONFIG_PATH = '~/.xukercli';
+const CONFIG_DIR = '/etc/xukercli';
+const CONFIG_FILE = CONFIG_DIR + '/config.json';
 
 export class ConfigurationTool
 {
-	private readonly config = readConfig(CONFIG_PATH);
+	private readonly config: AppConfiguration;
+
+	constructor() {
+		// check for config path
+		if (!fs.existsSync(CONFIG_DIR)) {
+			fs.mkdirSync(CONFIG_DIR);
+		}
+		// read config
+		this.config = readConfig(CONFIG_FILE);
+	}
 
 	setInstallationPath(value: string): void {
 		this.config.installationPath = value;
@@ -12,6 +23,6 @@ export class ConfigurationTool
 	}
 
 	private save(): void {
-		writeConfig(CONFIG_PATH, this.config);
+		writeConfig(CONFIG_FILE, this.config);
 	}
 }

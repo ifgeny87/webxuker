@@ -13,17 +13,17 @@ interface IInstallProps
 const configTool = new ConfigurationTool();
 
 function InstallComponent(props: IInstallProps): JSX.Element {
-	const [logs, setLogs] = useState<string[]>([]);
-	const [tool] = useState(new InstallServiceTool(props.path));
+	const [logs] = useState<string[]>([]);
 	const [done, setDone] = useState(false);
 	const [spinnerText, setSpinnerText] = useState<string>();
 	const [error, setError] = useState<string>();
 
 	function pushLog(message: string): void {
-		setLogs([...logs, message]);
+		logs.push(message);
 	}
 
 	useEffect(() => {
+		const tool = new InstallServiceTool(props.path)
 		tool.checkInstallationPath()
 			.then(() => {
 				pushLog('Installation path checking done');
@@ -40,7 +40,7 @@ function InstallComponent(props: IInstallProps): JSX.Element {
 				return tool.unpackAsset(destFile);
 			})
 			.then(() => {
-				pushLog('Unpacked');
+				pushLog('Unpacked package');
 				setSpinnerText('Installation package...');
 				return tool.install();
 			})

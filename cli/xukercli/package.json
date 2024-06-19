@@ -22,7 +22,7 @@
 	},
 	"scripts": {
 		"dev": "./bin/dev.js",
-		"build": "rm -rf dist && tsc -b tsconfig.app.json",
+		"build": "rm -rf dist && tsc -b tsconfig.json",
 		"prepack": "node ./scripts/prepack.cjs",
 		"postpack": "mv package.json_BACKUP package.json"
 	},

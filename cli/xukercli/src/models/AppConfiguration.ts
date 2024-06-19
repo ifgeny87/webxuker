@@ -10,7 +10,7 @@ export type AppConfiguration = z.infer<typeof AppConfigurationSchema>;
 export function readConfig(filePath: string): AppConfiguration {
 	const exists = fs.existsSync(filePath);
 	if (!exists) return {};
-	const content = fs.readFileSync(filePath).toString();
+	const content = JSON.parse(fs.readFileSync(filePath).toString());
 	return AppConfigurationSchema.parse(content);
 }
 
