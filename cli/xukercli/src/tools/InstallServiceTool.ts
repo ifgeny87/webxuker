@@ -16,8 +16,7 @@ export interface IReleaseInfo
 
 export class InstallServiceTool
 {
-	constructor(private readonly installationPath: string) {
-	}
+	constructor(private readonly installationPath: string) {}
 
 	async checkInstallationPath(): Promise<void> {
 		const exists = fs.existsSync(this.installationPath);
@@ -88,6 +87,7 @@ export class InstallServiceTool
 	async install(): Promise<void> {
 		// install node modules
 		const packageCwd = path.resolve(this.installationPath, 'package');
+		/*
 		let res: ISpawnResult = await spawnChild('npm', ['ci', '--omit=dev'], packageCwd);
 		if (res.code) {
 			throw new Error([
@@ -96,13 +96,14 @@ export class InstallServiceTool
 				res.stdout,
 			].filter(Boolean).join('\n'));
 		}
+		 */
 		// create script
 		const appPath = path.resolve(packageCwd, 'services', 'webxuker', 'webxuker.js');
 		const script = `node ${appPath}`;
 		const scriptPath = path.resolve(packageCwd, 'webxuker');
 		fs.writeFileSync(scriptPath, script);
 		// chmod
-		res = await spawnChild('chmod', ['+x', scriptPath]);
+		let res: ISpawnResult = await spawnChild('chmod', ['+x', scriptPath]);
 		if (res.code) {
 			throw new Error([
 				`Cannot set executable flag to ${scriptPath}`,
