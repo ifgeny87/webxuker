@@ -4,6 +4,7 @@ import * as fs from 'fs';
 export const AppConfigurationSchema = z.object({
 	installationPath: z.string().optional(),
 	installationDate: z.string().optional(),
+	uninstallationDate: z.string().optional(),
 });
 
 export type AppConfiguration = z.infer<typeof AppConfigurationSchema>;

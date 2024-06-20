@@ -4,10 +4,9 @@ import { render, Text } from 'ink';
 import { formatError, formatTime } from '../helpers/index.js';
 import { ErrorFragment, SpinnerText } from '../components/index.js';
 import {
-	InstallServiceTool,
-	ConfigurationTool,
-	DryRunInstallServiceTool,
-	IReleaseInfo,
+	InstallApplicationTool,
+	DryRunInstallApplicationTool,
+	IReleaseInfo, IInstallApplicationTool,
 } from '../tools/index.js';
 
 interface IInstallProps
@@ -15,8 +14,6 @@ interface IInstallProps
 	path: string;
 	dryRun: boolean;
 }
-
-const configTool = ConfigurationTool.getInstance();
 
 function InstallComponent(props: IInstallProps): JSX.Element {
 	const [logs] = useState<JSX.Element[]>([]);
@@ -26,43 +23,42 @@ function InstallComponent(props: IInstallProps): JSX.Element {
 
 	function pushLog(message: string | JSX.Element): void {
 		const node = <Text key={Math.random()}>
-			[<Text color="green">{formatTime(new Date())}</Text>]
-			{` `}{message}
+			[<Text color="green">{formatTime(new Date())}</Text>] {message}
 		</Text>;
 		logs.push(node);
 	}
 
 	useEffect(() => {
-		const tool = props.dryRun
-			? new DryRunInstallServiceTool(props.path)
-			: new InstallServiceTool(props.path);
-		tool.checkInstallationPath()
+		const installationTool: IInstallApplicationTool = props.dryRun
+			? new DryRunInstallApplicationTool()
+			: new InstallApplicationTool();
+		pushLog(`Application Webxuker will be installed to ${props.path}`);
+		installationTool.checkPreviousVersionInstalled()
 			.then(() => {
-				pushLog('Installation path checking done');
-				return tool.getLastReleaseURL();
+				pushLog('Previous version of installed application was not found. Its OK.');
+				return installationTool.checkInstallationPath(props.path);
+			})
+			.then(() => {
+				pushLog('Checking of installation path was successful');
+				return installationTool.getLastReleaseURL();
 			})
 			.then((releaseInfo: IReleaseInfo) => {
-				pushLog(`Found release ${releaseInfo.tagName}`);
-				setSpinnerText(`Downloading asset ${releaseInfo.assetName} (${releaseInfo.assetSize} bytes)...`);
-				return tool.downloadAsset(releaseInfo);
+				pushLog(`Found remote release ${releaseInfo.tagName}`);
+				setSpinnerText(`Downloading release asset ${releaseInfo.assetName} (${releaseInfo.assetSize} bytes)...`);
+				return installationTool.downloadAsset(releaseInfo, props.path);
 			})
 			.then((destFile: string) => {
 				pushLog(`Asset downloaded to ${destFile}`);
 				setSpinnerText(`Unpacking ${destFile}...`);
-				return tool.unpackAsset(destFile);
+				return installationTool.unpackAsset(destFile, props.path);
 			})
 			.then(() => {
 				pushLog('Unpacked package');
-				setSpinnerText('Installation package...');
-				return tool.install();
+				setSpinnerText('Package installation...');
+				return installationTool.install(props.path);
 			})
 			.then(() => {
 				pushLog(`Package installed to ${props.path}`);
-				if (!props.dryRun) {
-					// save config only in normal mode
-					configTool.installationPath = props.path;
-					configTool.installationDate = new Date();
-				}
 				setDone(true);
 			})
 			.catch((error: Error | unknown) => {
@@ -102,6 +98,7 @@ export default class InstallCommand extends Command
 
 	static override examples = [
 		'<%= config.bin %> <%= command.id %>',
+		'<%= config.bin %> <%= command.id %> --dry-run',
 		'<%= config.bin %> <%= command.id %> --path /opt/webxuker',
 	];
 

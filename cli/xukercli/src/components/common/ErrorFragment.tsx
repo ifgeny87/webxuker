@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { Text } from 'ink';
 
 interface IErrorComponentProps
@@ -11,8 +11,8 @@ export function ErrorFragment(props: IErrorComponentProps): JSX.Element | null {
 	if (!(props.error?.length || props.warning?.length)) {
 		return null;
 	}
-	return <Fragment>
+	return <>
 		{props.error?.length && <Text color="red">Error: {props.error.toString()}</Text>}
 		{props.warning?.length && <Text color="magenta">Warning: {props.warning.toString()}</Text>}
-	</Fragment>;
+	</>;
 }

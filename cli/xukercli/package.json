@@ -1,6 +1,6 @@
 {
 	"name": "@ifgeny87/xukercli",
-	"version": "1.0.10",
+	"version": "1.0.11",
 	"author": {
 		"name": "ifgeny87",
 		"email": "ifgeny87@gmail.com"
@@ -27,8 +27,7 @@
 		"dirname": "cli/xukercli",
 		"commands": "./build/commands",
 		"topicSeparator": " ",
-		"topics": {
-		}
+		"topics": {}
 	},
 	"scripts": {
 		"dev": "./bin/dev.js",
