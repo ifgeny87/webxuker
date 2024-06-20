@@ -1,29 +1,41 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { Command, Flags } from '@oclif/core';
 import { render, Text } from 'ink';
-import { formatError } from '../helpers/index.js';
+import { formatError, formatTime } from '../helpers/index.js';
 import { ErrorFragment, SpinnerText } from '../components/index.js';
-import { InstallServiceTool, IReleaseInfo, ConfigurationTool } from '../tools/index.js';
+import {
+	InstallServiceTool,
+	ConfigurationTool,
+	DryRunInstallServiceTool,
+	IReleaseInfo,
+} from '../tools/index.js';
 
 interface IInstallProps
 {
 	path: string;
+	dryRun: boolean;
 }
 
-const configTool = new ConfigurationTool();
+const configTool = ConfigurationTool.getInstance();
 
 function InstallComponent(props: IInstallProps): JSX.Element {
-	const [logs] = useState<string[]>([]);
+	const [logs] = useState<JSX.Element[]>([]);
 	const [done, setDone] = useState(false);
 	const [spinnerText, setSpinnerText] = useState<string>();
 	const [error, setError] = useState<string>();
 
-	function pushLog(message: string): void {
-		logs.push(message);
+	function pushLog(message: string | JSX.Element): void {
+		const node = <Text key={Math.random()}>
+			[<Text color="green">{formatTime(new Date())}</Text>]
+			{` `}{message}
+		</Text>;
+		logs.push(node);
 	}
 
 	useEffect(() => {
-		const tool = new InstallServiceTool(props.path)
+		const tool = props.dryRun
+			? new DryRunInstallServiceTool(props.path)
+			: new InstallServiceTool(props.path);
 		tool.checkInstallationPath()
 			.then(() => {
 				pushLog('Installation path checking done');
@@ -46,7 +58,11 @@ function InstallComponent(props: IInstallProps): JSX.Element {
 			})
 			.then(() => {
 				pushLog(`Package installed to ${props.path}`);
-				configTool.setInstallationPath(props.path);
+				if (!props.dryRun) {
+					// save config only in normal mode
+					configTool.installationPath = props.path;
+					configTool.installationDate = new Date();
+				}
 				setDone(true);
 			})
 			.catch((error: Error | unknown) => {
@@ -56,7 +72,10 @@ function InstallComponent(props: IInstallProps): JSX.Element {
 
 	const renderResult = (): JSX.Element => {
 		return <>
-			{logs.map((s, i) => <Text key={i}>{s}</Text>)}
+			{props.dryRun
+				? <ErrorFragment warning="The command is started in dry-run mode. Files will not be downloaded or saved on disk." />
+				: null}
+			{logs.map(i => i)}
 			{error ? <ErrorFragment error={error} />
 				: done ? <Text>Done</Text>
 					: spinnerText ? <SpinnerText text={spinnerText} /> : null}
@@ -75,6 +94,10 @@ export default class InstallCommand extends Command
 			description: 'path to install',
 			default: '/usr/local/webxuker',
 		}),
+		'dry-run': Flags.boolean({
+			description: 'simulation of command execution without downloading and creating files',
+			default: false,
+		}),
 	};
 
 	static override examples = [
@@ -86,6 +109,7 @@ export default class InstallCommand extends Command
 		const { flags } = await this.parse(InstallCommand);
 		render(<InstallComponent
 			path={flags.path}
+			dryRun={flags['dry-run']}
 		/>);
 	}
 }
