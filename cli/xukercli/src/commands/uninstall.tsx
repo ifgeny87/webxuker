@@ -1,8 +1,8 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { Command, Flags } from '@oclif/core';
 import { render, Text, Newline, useInput } from 'ink';
-import { formatError, formatTime } from '../helpers/index.js';
-import { ErrorFragment, SpinnerText } from '../components/index.js';
+import { formatError } from '../helpers/index.js';
+import { ErrorFragment, SpinnerText, LogPrinter } from '../components/index.js';
 import {
 	ServiceManagementTool,
 	IInstallApplicationTool,
@@ -20,20 +20,12 @@ interface IUninstallProps
 }
 
 function UninstallComponent(props: IUninstallProps): JSX.Element {
-	const [logs] = useState<JSX.Element[]>([]);
-	const [done, setDone] = useState(false);
+	const [logs] = useState(new LogPrinter());
 	const [spinnerText, setSpinnerText] = useState<string>();
 	const [warning, setWarning] = useState<string>();
 	const [error, setError] = useState<string>();
 	const [step, setStep] = useState(1);
 	const [services, setServices] = useState<INewService[]>();
-
-	function pushLog(message: string | JSX.Element): void {
-		const node = <Text key={Math.random()}>
-			[<Text color="green">{formatTime(new Date())}</Text>] {message}
-		</Text>;
-		logs.push(node);
-	}
 
 	useEffect(() => {
 		const installationTool: IInstallApplicationTool = props.dryRun
@@ -47,15 +39,15 @@ function UninstallComponent(props: IUninstallProps): JSX.Element {
 			// checking installation and get information of services
 			installationTool.getInstallationPathFromBin()
 				.then(path => {
-					pushLog(`Found installation path "${path}"`);
+					logs.add(`Found installation path "${path}"`);
 					setSpinnerText('Uninstalling package...');
 					return serviceTool.getServiceList();
 				})
 				.then((services: INewService[]) => {
 					if (!services.length) {
-						pushLog('No one service configurations found');
+						logs.add('No one service configurations found');
 					} else {
-						pushLog(<Text>
+						logs.add(<Text>
 							Found next service configurations:
 							{services.map(info => <Fragment key={info.name}>
 								<Newline />
@@ -82,15 +74,15 @@ function UninstallComponent(props: IUninstallProps): JSX.Element {
 						setSpinnerText(`(${i + 1}/${services.length}) Deleting service "${service.name}"`);
 						await serviceTool.deleteServiceByName(service.name)
 							.then(() => {
-								pushLog(<Text>
+								logs.add(<Text>
 									Service <Text color="green">{service.name}</Text> deleted
 								</Text>);
 							})
 							.catch((error: unknown) => {
-								pushLog(<Text>
+								logs.add(<Text>
 									Thrown an error while service <Text color="green">
-										{service.name}
-									</Text> deleting
+									{service.name}
+								</Text> deleting
 								</Text>);
 								throw error;
 							});
@@ -99,13 +91,13 @@ function UninstallComponent(props: IUninstallProps): JSX.Element {
 				resolve(undefined);
 			})
 				.then(() => {
-					pushLog(`All services deleted`);
+					logs.add(`All services deleted`);
 					setSpinnerText('Uninstalling application...');
 					return installationTool.uninstall();
 				})
 				.then(() => {
-					pushLog(`Package uninstalled`);
-					setDone(true);
+					logs.add(`Package uninstalled`);
+					setSpinnerText(undefined);
 				})
 				.catch((error: Error | unknown) => {
 					setError(formatError(error));
@@ -134,11 +126,10 @@ function UninstallComponent(props: IUninstallProps): JSX.Element {
 				? <ErrorFragment
 					warning="The command is started in dry-run mode. Files will not be deleted or saved on disk." />
 				: null}
-			{logs.map(i => i)}
+			{logs.render()}
 			{error || warning ? <ErrorFragment error={error} warning={warning} />
 				: step === 2 ? <ConfirmInput />
-					: done ? <Text>Done</Text>
-						: spinnerText ? <SpinnerText text={spinnerText} /> : null}
+					: spinnerText ? <SpinnerText text={spinnerText} /> : null}
 		</>;
 	}
 

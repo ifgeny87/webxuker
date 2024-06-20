@@ -65,9 +65,15 @@ export class InstallApplicationTool extends IInstallApplicationTool
 				res.stdout,
 			].filter(Boolean).join('\n'));
 		}
+		// check and create bin directory
+		const binPath = path.resolve(installationPath, 'bin');
+		const exists = fs.existsSync(binPath);
+		if (!exists) {
+			fs.mkdirSync(binPath);
+		}
 		// create script
-		const script = `cd ${packagePath} && node webxuker.js`;
-		const scriptPath = path.resolve(packagePath, 'webxuker');
+		const script = `cd ${packagePath} && node webxuker.js $@`;
+		const scriptPath = path.resolve(binPath, 'webxuker');
 		fs.writeFileSync(scriptPath, script);
 		// chmod
 		res = await spawnChild('chmod', ['+x', scriptPath]);

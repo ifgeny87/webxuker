@@ -1,12 +1,13 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { Command, Flags } from '@oclif/core';
-import { render, Text } from 'ink';
-import { formatError, formatTime } from '../helpers/index.js';
-import { ErrorFragment, SpinnerText } from '../components/index.js';
+import { render } from 'ink';
+import { formatError } from '../helpers/index.js';
+import { ErrorFragment, SpinnerText, LogPrinter } from '../components/index.js';
 import {
 	InstallApplicationTool,
 	DryRunInstallApplicationTool,
-	IReleaseInfo, IInstallApplicationTool,
+	IReleaseInfo,
+	IInstallApplicationTool,
 } from '../tools/index.js';
 
 interface IInstallProps
@@ -16,50 +17,42 @@ interface IInstallProps
 }
 
 function InstallComponent(props: IInstallProps): JSX.Element {
-	const [logs] = useState<JSX.Element[]>([]);
-	const [done, setDone] = useState(false);
+	const [logs] = useState(new LogPrinter());
 	const [spinnerText, setSpinnerText] = useState<string>();
 	const [error, setError] = useState<string>();
-
-	function pushLog(message: string | JSX.Element): void {
-		const node = <Text key={Math.random()}>
-			[<Text color="green">{formatTime(new Date())}</Text>] {message}
-		</Text>;
-		logs.push(node);
-	}
 
 	useEffect(() => {
 		const installationTool: IInstallApplicationTool = props.dryRun
 			? new DryRunInstallApplicationTool()
 			: new InstallApplicationTool();
-		pushLog(`Application Webxuker will be installed to ${props.path}`);
+		logs.add(`Application Webxuker will be installed to ${props.path}`);
 		installationTool.checkPreviousVersionInstalled()
 			.then(() => {
-				pushLog('Previous version of installed application was not found. Its OK.');
+				logs.add('Previous version of installed application was not found. Its OK.');
 				return installationTool.checkInstallationPath(props.path);
 			})
 			.then(() => {
-				pushLog('Checking of installation path was successful');
+				logs.add('Checking of installation path was successful');
 				return installationTool.getLastReleaseURL();
 			})
 			.then((releaseInfo: IReleaseInfo) => {
-				pushLog(`Found remote release ${releaseInfo.tagName}`);
+				logs.add(`Found remote release ${releaseInfo.tagName}`);
 				setSpinnerText(`Downloading release asset ${releaseInfo.assetName} (${releaseInfo.assetSize} bytes)...`);
 				return installationTool.downloadAsset(releaseInfo, props.path);
 			})
 			.then((destFile: string) => {
-				pushLog(`Asset downloaded to ${destFile}`);
+				logs.add(`Asset downloaded to ${destFile}`);
 				setSpinnerText(`Unpacking ${destFile}...`);
 				return installationTool.unpackAsset(destFile, props.path);
 			})
 			.then(() => {
-				pushLog('Unpacked package');
+				logs.add('Unpacked package');
 				setSpinnerText('Package installation...');
 				return installationTool.install(props.path);
 			})
 			.then(() => {
-				pushLog(`Package installed to ${props.path}`);
-				setDone(true);
+				logs.add(`Package installed to ${props.path}`);
+				setSpinnerText(undefined);
 			})
 			.catch((error: Error | unknown) => {
 				setError(formatError(error));
@@ -71,10 +64,9 @@ function InstallComponent(props: IInstallProps): JSX.Element {
 			{props.dryRun
 				? <ErrorFragment warning="The command is started in dry-run mode. Files will not be downloaded or saved on disk." />
 				: null}
-			{logs.map(i => i)}
+			{logs.render()}
 			{error ? <ErrorFragment error={error} />
-				: done ? <Text>Done</Text>
-					: spinnerText ? <SpinnerText text={spinnerText} /> : null}
+				: spinnerText ? <SpinnerText text={spinnerText} /> : null}
 		</>;
 	}
 

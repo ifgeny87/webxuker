@@ -27,7 +27,11 @@
 		"dirname": "cli/xukercli",
 		"commands": "./build/commands",
 		"topicSeparator": " ",
-		"topics": {}
+		"topics": {
+			"service": {
+				"description": "Webxuker services management"
+			}
+		}
 	},
 	"scripts": {
 		"dev": "./bin/dev.js",
