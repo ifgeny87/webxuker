@@ -15,17 +15,18 @@
 const fs = require('fs');
 const { resolve } = require('path');
 
-const workDir = resolve(__dirname, '..');
-const packageJson = resolve(workDir, 'package.json');
+const projectDir = resolve(__dirname, '..');
+const projectPackageFile = resolve(projectDir, 'package.json');
 
 // create backup
-fs.copyFileSync(packageJson, packageJson + '_BACKUP');
+fs.copyFileSync(projectPackageFile, projectPackageFile + '_BACKUP');
 
 // read
-const package = JSON.parse(fs.readFileSync(packageJson).toString());
+const projectPackage = JSON.parse(fs.readFileSync(projectPackageFile).toString());
 
-// clear
-delete package.scripts;
+// update project package
+delete projectPackage.dependencies;
+delete projectPackage.scripts;
 
 // write
-fs.writeFileSync(packageJson, JSON.stringify(package, null, '\t'));
+fs.writeFileSync(projectPackageFile, JSON.stringify(projectPackage, null, '  '));

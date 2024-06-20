@@ -1,6 +1,19 @@
 {
-	"name": "@ifgeny87/webxukercli",
-	"version": "1.0.0",
+	"name": "@ifgeny87/xukercli",
+	"version": "1.0.2",
+	"author": {
+		"name": "ifgeny87",
+		"email": "ifgeny87@gmail.com"
+	},
+	"license": "ISC",
+	"repository": {
+		"type": "git",
+		"url": "git+git@github.com:ifgeny87/webxuker"
+	},
+	"bugs": {
+		"url": "https://github.com/ifgeny87/webxuker/issues"
+	},
+	"homepage": "https://github.com/ifgeny87/webxuker/tree/master/cli/xukercli#readme",
 	"engines": {
 		"node": ">=18.1.0"
 	},

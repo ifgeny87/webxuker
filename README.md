@@ -3,7 +3,8 @@
 
 ## Docs
 
-- [DEVNOTES.md](docs%2FDEVNOTES.md)
+- [DEVNOTES.md](docs/DEVNOTES.md)
+- [xukercli/README.md](cli/xukercli/README.md)
 
 
 ## Description
