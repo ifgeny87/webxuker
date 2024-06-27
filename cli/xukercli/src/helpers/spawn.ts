@@ -6,7 +6,7 @@ export interface ISpawnResult {
 	stderr?: string;
 }
 
-export async function spawnChild(cmd: string, args: string[], cwd?: string): Promise<ISpawnResult> {
+export async function spawnChild(cmd: string, args?: string[], cwd?: string): Promise<ISpawnResult> {
 	return new Promise((resolve, reject) => {
 		const ps = spawn(cmd, args, { cwd });
 		const stdout: Buffer[] = [];

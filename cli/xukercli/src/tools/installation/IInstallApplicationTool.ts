@@ -32,11 +32,11 @@ You can check it with "ls -la ${this.configTool.BIN_PATH}".
 You can run command "uninstall" or "update" for installed version.`);
 		}
 		// check location from saved config
-		const installationPath = this.configTool.getInstallationPath();
-		if (installationPath) {
-			const exists = fs.existsSync(installationPath);
+		const applicationInfo = this.configTool.getApplicationInfo();
+		if (applicationInfo) {
+			const exists = fs.existsSync(applicationInfo.installationPath);
 			if (exists) {
-				throw new Error(`Application already installed in ${installationPath}.
+				throw new Error(`Application already installed in ${applicationInfo}.
 The path to this directory is read from configuration file and exists.
 You can check configuration with command "xuker config".`);
 			}
@@ -92,7 +92,7 @@ You must clear that directory before install application.`);
 			url: `https://api.github.com/repos/${this.configTool.REPO}/releases/latest`,
 			responseType: 'json',
 		});
-		if (status >= 200) {
+		if (status > 200) {
 			throw new Error(`Latest release not found. Server returned code ${status}`);
 		}
 		if (!data.assets) {

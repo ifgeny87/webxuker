@@ -1,4 +1,5 @@
-import { IDaemonManager, IDaemonStatus, ICreateDaemonOptions } from './IDaemonManager.js';
+import { IDaemonManager, IDaemonStatus } from './IDaemonManager.js';
+import { spawnChild } from '../../helpers/index.js';
 
 /**
  * Менеджер выполняет платформозависимое обслуживание демонов под управлением systemctl.
@@ -6,23 +7,96 @@ import { IDaemonManager, IDaemonStatus, ICreateDaemonOptions } from './IDaemonMa
  */
 export class SystemctlDaemonManager extends IDaemonManager
 {
-	override getStatus(name: string): Promise<IDaemonStatus> {
-		throw new Error('TODO getStatus');
+	override async list(): Promise<IDaemonStatus[]> {
+		const res = await spawnChild('systemctl');
+		if (res.code || !res.stdout) {
+			throw new Error([
+				`Cannot get list of services`,
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
+		// нужны только строки из stdout до пустой строки
+		const lines = res.stdout.split('\n');
+		const k = lines.indexOf('');
+		return lines.slice(0, k)
+			.map(s => {
+				const parts = s.match(/^(?<unit>[\w-.@]+)\s+(?<load>\w+)\s+(?<active>\w+)\s+(?<sub>\w+)\s+/);
+				if (!parts?.groups) {
+					throw new Error(`Cannot parse service line "${s}"`);
+				}
+				return {
+					unit: parts.groups.unit,
+					load: parts.groups.load,
+					active: parts.groups.active,
+					sub: parts.groups.sub,
+				};
+			});
 	}
 
-	override create(options: ICreateDaemonOptions): Promise<void> {
-		throw new Error('TODO create');
+	override async refresh(): Promise<void> {
+		const res = await spawnChild('systemctl', ['daemon-reload']);
+		if (res.code) {
+			throw new Error([
+				`Cannot reload service list`,
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
 	}
 
-	override deleteByName(name: string): Promise<void> {
-		throw new Error('TODO deleteByName');
+	override async enable(unit: string): Promise<void> {
+		const res = await spawnChild('systemctl', ['enable', unit]);
+		if (res.code) {
+			throw new Error([
+				`Cannot enable service "${unit}"`,
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
 	}
 
-	override startByName(name: string): Promise<void> {
-		throw new Error('TODO startByName');
+	override async disable(unit: string): Promise<void> {
+		const res = await spawnChild('systemctl', ['disable', unit]);
+		if (res.code) {
+			throw new Error([
+				`Cannot disable service "${unit}"`,
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
 	}
 
-	override stopByName(name: string): Promise<void> {
-		throw new Error('TODO stopByName');
+	override async start(unit: string): Promise<void> {
+		const res = await spawnChild('systemctl', ['start', unit]);
+		if (res.code) {
+			throw new Error([
+				`Cannot start service "${unit}"`,
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
+	}
+
+	override async restart(unit: string): Promise<void> {
+		const res = await spawnChild('systemctl', ['restart', unit]);
+		if (res.code) {
+			throw new Error([
+				`Cannot restart service "${unit}"`,
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
+	}
+
+	override async stop(unit: string): Promise<void> {
+		const res = await spawnChild('systemctl', ['stop', unit]);
+		if (res.code) {
+			throw new Error([
+				`Cannot stop service "${unit}"`,
+				res.stderr,
+				res.stdout,
+			].filter(Boolean).join('\n'));
+		}
 	}
 }

@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import * as fs from 'fs';
+import { ServiceInfoSchema } from './ServiceInfo.js';
+import { ApplicationInfoSchema } from './ApplicationInfo.js';
 
 export const AppConfigurationSchema = z.object({
-	installationPath: z.string().optional(),
-	installationDate: z.string().optional(),
-	uninstallationDate: z.string().optional(),
+	application: ApplicationInfoSchema.optional(),
+	services: z.array(ServiceInfoSchema).optional(),
 });
 
 export type AppConfiguration = z.infer<typeof AppConfigurationSchema>;

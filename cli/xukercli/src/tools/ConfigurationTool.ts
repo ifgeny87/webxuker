@@ -1,5 +1,11 @@
 import * as fs from 'fs';
-import { readConfig, writeConfig, AppConfiguration } from '../models/index.js';
+import {
+	readConfig,
+	writeConfig,
+	AppConfiguration,
+	ApplicationInfo,
+	ServiceInfo,
+} from '../models/index.js';
 
 /**
  * Конфигуратор приложения.
@@ -35,29 +41,30 @@ export class ConfigurationTool
 		return ConfigurationTool.instance;
 	}
 
-	getInstallationPath(): string | undefined {
-		return this.config.installationPath;
+	getApplicationInfo(): ApplicationInfo | undefined {
+		return this.config.application;
 	}
 
-	setInstallationPath(value: string): this {
-		if (!value) {
-			throw new Error('Value "installationPath" must be not empty');
-		}
-		this.config.installationPath = value;
+	setApplicationInfo(value: ApplicationInfo): this {
+		this.config.application = value;
 		this.save();
 		return this;
 	}
 
-	setInstallationDate(value: Date): this {
-		this.config.installationDate = value.toISOString();
+	getServicesInfo(): ServiceInfo[] | undefined {
+		return this.config.services;
+	}
+
+	setServicesInfo(value: ServiceInfo[] | undefined): this {
+		this.config.services = value;
 		this.save();
 		return this;
 	}
 
-	setUninstallationDate(value: Date): this {
-		this.config.uninstallationDate = value.toISOString();
-		this.save();
-		return this;
+	getServiceInfoByName(name: string): ServiceInfo | undefined {
+		const services = this.getServicesInfo();
+		if (!services?.length) return undefined;
+		return services.find(s => s.name === name);
 	}
 
 	// сохранение выполняется по таймеру, чтобы была возможность записать несколько параметров

@@ -22,7 +22,7 @@ export class InstallApplicationTool extends IInstallApplicationTool
 			responseType: 'stream',
 		})
 			.then(async ({ status, data }: AxiosResponse) => {
-				if (status >= 200) {
+				if (status > 200) {
 					throw new Error(`Cannot download release asset. Server returned code ${status}`);
 				}
 				const destFile = path.resolve(downloadPath, releaseInfo.assetName);
@@ -94,8 +94,10 @@ export class InstallApplicationTool extends IInstallApplicationTool
 			].filter(Boolean).join('\n'));
 		}
 		this.configTool
-			.setInstallationPath(installationPath)
-			.setInstallationDate(new Date());
+			.setApplicationInfo({
+				installationPath,
+				installDate: new Date(),
+			});
 	}
 
 	/**

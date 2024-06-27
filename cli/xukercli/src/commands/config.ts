@@ -6,7 +6,7 @@ const configTool = ConfigurationTool.getInstance();
 
 export default class ConfigCommand extends Command
 {
-	static override description = 'Print saved configuration';
+	static override description = 'Prints saved configuration';
 
 	static override examples = [
 		'<%= config.bin %> <%= command.id %>',

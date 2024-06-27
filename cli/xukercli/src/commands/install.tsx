@@ -46,8 +46,8 @@ function InstallComponent(props: IInstallProps): JSX.Element {
 				return installationTool.unpackAsset(destFile, props.path);
 			})
 			.then(() => {
-				logs.add('Unpacked package');
-				setSpinnerText('Package installation...');
+				logs.add(`Unpacked to ${props.path}`);
+				setSpinnerText('Modules installation...');
 				return installationTool.install(props.path);
 			})
 			.then(() => {
@@ -56,26 +56,23 @@ function InstallComponent(props: IInstallProps): JSX.Element {
 			})
 			.catch((error: Error | unknown) => {
 				setError(formatError(error));
+				process.exit(1);
 			});
 	}, []);
 
-	const renderResult = (): JSX.Element => {
-		return <>
-			{props.dryRun
-				? <ErrorFragment warning="The command is started in dry-run mode. Files will not be downloaded or saved on disk." />
-				: null}
-			{logs.render()}
-			{error ? <ErrorFragment error={error} />
-				: spinnerText ? <SpinnerText text={spinnerText} /> : null}
-		</>;
-	}
-
-	return <Fragment>{renderResult()}</Fragment>;
+	return <Fragment>
+		{props.dryRun
+			? <ErrorFragment warning="The command is started in dry-run mode. Files will not be downloaded or saved on disk." />
+			: null}
+		{logs.render()}
+		{error ? <ErrorFragment error={error} />
+			: spinnerText ? <SpinnerText text={spinnerText} /> : null}
+	</Fragment>;
 }
 
 export default class InstallCommand extends Command
 {
-	static override description = 'Install Webxuker application on your server';
+	static override description = 'Installs Webxuker application on your server';
 
 	static override flags = {
 		path: Flags.string({

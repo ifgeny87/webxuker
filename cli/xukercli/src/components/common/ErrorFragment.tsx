@@ -12,7 +12,7 @@ export function ErrorFragment(props: IErrorComponentProps): JSX.Element | null {
 		return null;
 	}
 	return <>
-		{props.error?.length && <Text color="red">Error: {props.error.toString()}</Text>}
+		{props.error?.length && <Text color="red">{props.error.toString()}</Text>}
 		{props.warning?.length && <Text color="magenta">Warning: {props.warning.toString()}</Text>}
 	</>;
 }

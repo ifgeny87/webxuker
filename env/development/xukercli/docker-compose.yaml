@@ -1,0 +1,9 @@
+services:
+  ubuntu:
+    image: oci.registries.dev.local/ta-http/base:1.5.0
+    volumes:
+      - type: bind
+        source: ../../..
+        target: /opt/app
+        read_only: true
+    working_dir: /opt/app/cli/xukercli

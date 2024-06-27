@@ -8,10 +8,10 @@ import {
 	IInstallApplicationTool,
 	DryRunInstallApplicationTool,
 	InstallApplicationTool,
-	INewService,
 	DryRunServiceManagementTool,
 	IServiceManagementTool,
 } from '../tools/index.js';
+import { ServiceInfo, ServiceStatusInfo } from '../models/index.js';
 
 interface IUninstallProps
 {
@@ -25,7 +25,7 @@ function UninstallComponent(props: IUninstallProps): JSX.Element {
 	const [warning, setWarning] = useState<string>();
 	const [error, setError] = useState<string>();
 	const [step, setStep] = useState(1);
-	const [services, setServices] = useState<INewService[]>();
+	const [services, setServices] = useState<ServiceInfo[]>();
 
 	useEffect(() => {
 		const installationTool: IInstallApplicationTool = props.dryRun
@@ -41,27 +41,28 @@ function UninstallComponent(props: IUninstallProps): JSX.Element {
 				.then(path => {
 					logs.add(`Found installation path "${path}"`);
 					setSpinnerText('Uninstalling package...');
-					return serviceTool.getServiceList();
+					return serviceTool.getServiceStatusesList();
 				})
-				.then((services: INewService[]) => {
-					if (!services.length) {
+				.then((statuses: ServiceStatusInfo[] | undefined) => {
+					if (!statuses?.length) {
 						logs.add('No one service configurations found');
 					} else {
 						logs.add(<Text>
 							Found next service configurations:
-							{services.map(info => <Fragment key={info.name}>
+							{statuses.map(info => <Fragment key={info.name}>
 								<Newline />
 								* <Text
 								color="green">{info.name}</Text> at {info.configurationPath}
 							</Fragment>)}
 						</Text>);
-						setServices(services);
+						setServices(statuses);
 					}
 					setStep(props.yes ? 3 : 2);
 					setSpinnerText(undefined);
 				})
 				.catch((error: Error | unknown) => {
 					setError(formatError(error));
+					process.exit(1);
 				});
 		}
 
@@ -101,6 +102,7 @@ function UninstallComponent(props: IUninstallProps): JSX.Element {
 				})
 				.catch((error: Error | unknown) => {
 					setError(formatError(error));
+					process.exit(1);
 				});
 		}
 	}, [step]);
@@ -138,7 +140,7 @@ function UninstallComponent(props: IUninstallProps): JSX.Element {
 
 export default class UninstallCommand extends Command
 {
-	static override description = 'Uninstall Webxuker application from your server';
+	static override description = 'Uninstalls Webxuker application from your server';
 
 	static override flags = {
 		yes: Flags.boolean({

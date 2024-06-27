@@ -1,15 +1,9 @@
-import { SystemctlDaemonManager } from './SystemctlDaemonManager.js';
-
-export enum DaemonStatusCodesEnum
-{
-	started = 'started',
-	stopped = 'stopped',
-}
-
 export interface IDaemonStatus
 {
-	name: string;
-	status: DaemonStatusCodesEnum;
+	unit: string;
+	load: string;
+	active: string;
+	sub: string;
 }
 
 export interface ICreateDaemonOptions
@@ -23,13 +17,17 @@ export interface ICreateDaemonOptions
  */
 export abstract class IDaemonManager
 {
-	abstract getStatus(name: string): Promise<IDaemonStatus>;
+	abstract list(): Promise<IDaemonStatus[]>;
 
-	abstract create(options: ICreateDaemonOptions): Promise<void>;
+	abstract refresh(): Promise<void>;
 
-	abstract deleteByName(name: string): Promise<void>;
+	abstract enable(unit: string): Promise<void>;
 
-	abstract startByName(name: string): Promise<void>;
+	abstract disable(unit: string): Promise<void>;
 
-	abstract stopByName(name: string): Promise<void>;
+	abstract start(unit: string): Promise<void>;
+
+	abstract restart(unit: string): Promise<void>;
+
+	abstract stop(unit: string): Promise<void>;
 }
