@@ -6,6 +6,7 @@ import {
 	ApplicationInfo,
 	ServiceInfo,
 } from '../models/index.js';
+import { getCurrentMachine, MachineCodesEnum, CLIConfigurationError } from '../helpers/index.js';
 
 /**
  * Конфигуратор приложения.
@@ -18,18 +19,25 @@ export class ConfigurationTool
 	private static instance: ConfigurationTool;
 
 	readonly REPO = 'ifgeny87/webxuker'; // репозиторий в github
-	readonly CONFIG_DIR = '/etc/xukercli'; // папка с файлами конфигураций CLI
-	readonly CONFIG_FILE = this.CONFIG_DIR + '/config.json'; // основоной файл конфигурации CLI
-	readonly BIN_PATH = '/usr/local/bin/webxuker'; // путь для ссылки на скрипт запуска
+	readonly BIN_NAME = 'xukercli';
+	readonly WEB_BIN_NAME = 'webxuker';
+	readonly WEB_BIN_PATH = `/usr/local/bin/${this.WEB_BIN_NAME}`; // путь для ссылки на скрипт запуска
+	readonly CONFIG_DIR: string;
+	readonly CONFIG_FILE: string;
 
+	private readonly config!: AppConfiguration;
 	private saveTimeout: NodeJS.Timeout | undefined;
-	private readonly config: AppConfiguration;
 
 	private constructor() {
-		// check for config path
-		if (!fs.existsSync(this.CONFIG_DIR)) {
-			fs.mkdirSync(this.CONFIG_DIR);
+		const machine = getCurrentMachine();
+		if (machine === MachineCodesEnum.linux) {
+			this.CONFIG_DIR = `/etc/${this.BIN_NAME}`;
+		} else if (machine === MachineCodesEnum.darwin) {
+			this.CONFIG_DIR = `${process.env.HOME}/Library/Preferences/${this.BIN_NAME}`;
+		} else {
+			throw new CLIConfigurationError(`Cannot detect machine`);
 		}
+		this.CONFIG_FILE = `${this.CONFIG_DIR}/config.json`;
 		// read config
 		this.config = readConfig(this.CONFIG_FILE);
 	}
@@ -67,8 +75,24 @@ export class ConfigurationTool
 		return services.find(s => s.name === name);
 	}
 
+	toDto(): object {
+		return {
+			REPO: this.REPO,
+			BIN_NAME: this.BIN_NAME,
+			WEB_BIN_NAME: this.WEB_BIN_NAME,
+			WEB_BIN_PATH: this.WEB_BIN_PATH,
+			CONFIG_DIR: this.CONFIG_DIR,
+			CONFIG_FILE: this.CONFIG_FILE,
+			config: this.config,
+		};
+	}
+
 	// сохранение выполняется по таймеру, чтобы была возможность записать несколько параметров
 	private save(): void {
+		// check for config path
+		if (!fs.existsSync(this.CONFIG_DIR)) {
+			fs.mkdirSync(this.CONFIG_DIR);
+		}
 		clearTimeout(this.saveTimeout);
 		this.saveTimeout = setTimeout(() => {
 			writeConfig(this.CONFIG_FILE, this.config);

@@ -1,3 +1,13 @@
+export interface ICreateNewServiceOptions {
+	unitName: string;
+	group?: string;
+	title: string;
+	description: string;
+	cmd: string;
+	args?: string[];
+	env?: string[];
+}
+
 export interface IDaemonStatus
 {
 	unit: string;
@@ -17,6 +27,8 @@ export interface ICreateDaemonOptions
  */
 export abstract class IDaemonManager
 {
+	abstract createNewServiceElement(options: ICreateNewServiceOptions): Promise<string>;
+
 	abstract list(): Promise<IDaemonStatus[]>;
 
 	abstract refresh(): Promise<void>;

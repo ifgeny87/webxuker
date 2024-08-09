@@ -40,7 +40,7 @@
 		"postpack": "mv package.json_BACKUP package.json"
 	},
 	"dependencies": {
-		"@oclif/core": "^4.0.6",
+		"@oclif/core": "^4.0.17",
 		"axios": "^1.7.2",
 		"ink": "^5.0.1",
 		"ink-spinner": "^5.0.0",

@@ -1,25 +1,41 @@
-import { AxiosError } from 'axios';
-import { HumanError } from '../errors/index.js';
+import { ISpawnResult } from './spawn.js';
 
-export function formatError(error: Error | unknown): string {
-	let lines: string[] = [];
-	if (error instanceof Error) {
-		if (error instanceof HumanError) {
-			// для человеческих ошибок выводим только сообщение, без стека
-			lines.push(error.message);
-		} else {
-			lines.push(error.stack || error.message);
-		}
-		if (error instanceof AxiosError && error.response?.data) {
-			const data = error.response.data;
-			try {
-				lines.push(JSON.stringify(data, null, '  '));
-			} catch(_) {
-				lines.push(String(data));
-			}
-		}
-	} else {
-		lines.push(String(error));
+export class HumanError extends Error
+{
+	name = HumanError.name;
+}
+
+export class CLIConfigurationError extends HumanError
+{
+	name = CLIConfigurationError.name;
+}
+
+export class EntityNotFoundBySearchParamsError extends HumanError
+{
+	name = EntityNotFoundBySearchParamsError.name
+
+	constructor(entityName: string, search: object) {
+		super();
+		this.message = `Entity ${entityName} with params ${JSON.stringify(search)} not found`;
 	}
-	return lines.join('\n');
+}
+
+export class SpawnError extends HumanError
+{
+	name = SpawnError.name;
+
+	constructor(message: string, spawnResult: ISpawnResult) {
+		super();
+		const lines: string[] = [];
+		lines.push(message);
+		lines.push(`CMD: ${spawnResult.fullCmd}`);
+		lines.push(`EXIT CODE: ${spawnResult.exitCode}`);
+		if (spawnResult.stderr) {
+			lines.push(`STDERR: ${spawnResult.stderr}`);
+		}
+		if (spawnResult.stdout) {
+			lines.push(`STDOUT: ${spawnResult.stdout}`);
+		}
+		this.message = lines.join('\n');
+	}
 }

@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import { resolve } from 'path';
 import axios from 'axios';
 import { ConfigurationTool } from '../ConfigurationTool.js';
+import { ApplicationInfo } from '../../models/index.js';
 
 export interface IReleaseInfo
 {
@@ -17,44 +18,45 @@ export abstract class IInstallApplicationTool
 
 	/**
 	 * Проверяет, установлена ли предыдущая версия.
-	 * Бросит ошибку если приложение уже установлено в /usr/local/bin.
-	 * Бросит ошибку если в конфиге заполнено значение installationPath и папка существует.
+	 * Вернет false если приложение не установлено.
+	 * Вернет сообщение если приложение уже установлено в /usr/local/bin.
+	 * Вернет сообщение если в конфиге заполнено значение installationPath и папка существует.
 	 */
-	async checkPreviousVersionInstalled(): Promise<void> {
+	async checkPreviousVersionInstalled(): Promise<false | string> {
 		// check if application is already installed
 		let linkLookAt = '';
 		try {
-			linkLookAt = fs.readlinkSync(this.configTool.BIN_PATH);
-		} catch(_) {}
+			linkLookAt = fs.readlinkSync(this.configTool.WEB_BIN_PATH);
+		} catch (_) {}
 		if (linkLookAt) {
-			throw new Error(`Application already installed in "${linkLookAt}".
-You can check it with "ls -la ${this.configTool.BIN_PATH}".
-You can run command "uninstall" or "update" for installed version.`);
+			return `Application already installed in "${linkLookAt}".
+You can check it with "ls -la ${this.configTool.WEB_BIN_PATH}".
+You can run command "uninstall" or "update" for installed version.`;
 		}
 		// check location from saved config
 		const applicationInfo = this.configTool.getApplicationInfo();
 		if (applicationInfo) {
 			const exists = fs.existsSync(applicationInfo.installationPath);
 			if (exists) {
-				throw new Error(`Application already installed in ${applicationInfo}.
+				return `Application already installed in ${applicationInfo.installationPath}.
 The path to this directory is read from configuration file and exists.
-You can check configuration with command "xuker config".`);
+You can check configuration with command "xuker config".`;
 			}
 		}
+		return false;
 	}
 
 	/**
-	 * Вернет папку установки приложения по текущей ссылке в /usr/local/bin/webxuker.
-	 * Бросит ошибку если приложение не усатновлено в /usr/local/bin.
+	 * Вернет путь к папке установки приложения по ссылке на запускаемый файл.
+	 * Вернет false если запускаемый файл не обнаружен.
 	 */
-	async getInstallationPathFromBin(): Promise<string> {
+	async getInstallationPathFromBin(): Promise<false | string> {
 		let linkLookAt = '';
 		try {
-			linkLookAt = fs.readlinkSync(this.configTool.BIN_PATH);
+			linkLookAt = fs.readlinkSync(this.configTool.WEB_BIN_PATH);
 		} catch(_) {}
 		if (!linkLookAt) {
-			throw new Error(`Application does not installed.
-You can install latest application version.`);
+			return false;
 		}
 		return resolve(linkLookAt, '..');
 	}
@@ -62,10 +64,8 @@ You can install latest application version.`);
 	/**
 	 * Проверяет наличие будущей папки для установки.
 	 * Бросит ошибку если папка назначения существует и не является папкой.
-	 * Бросит ошибку если папка назначения не пустая.
 	 */
 	async checkInstallationPath(path: string): Promise<void> {
-		// check installation directory
 		const exists = fs.existsSync(path);
 		if (!exists) return; // path does not exist, OK
 		const stat = fs.statSync(path);
@@ -73,12 +73,6 @@ You can install latest application version.`);
 			throw new Error(`Installation location "${path}" does not directory.
 You must delete it before install application.
 Or you can choose another installation path with "--path" flag.`);
-		}
-		// if directory exists then it must be empty
-		const items = fs.readdirSync(path);
-		if (items.length) {
-			throw new Error(`Directory "${path}" does not empty.
-You must clear that directory before install application.`);
 		}
 	}
 
@@ -115,5 +109,5 @@ You must clear that directory before install application.`);
 
 	abstract install(installationPath: string): Promise<void>;
 
-	abstract uninstall(): Promise<void>;
+	abstract uninstall(applicationInfo: ApplicationInfo): Promise<void>;
 }

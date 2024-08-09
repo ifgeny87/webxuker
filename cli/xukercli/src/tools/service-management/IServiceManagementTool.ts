@@ -9,8 +9,7 @@ import {
 	readServiceActiveCode,
 } from '../../models/index.js';
 import { getDaemonManager } from '../daemon-manager/index.js';
-import { validateServiceName } from '../../helpers/index.js';
-import { HumanError } from '../../errors/index.js';
+import { validateServiceName, HumanError } from '../../helpers/index.js';
 
 export interface IAddServiceOptions
 {
@@ -82,7 +81,7 @@ You can check it with command "xuker service status '${options.name}'".`);
 		}
 		await this.createNewService({
 			name: options.name,
-			unit: `${options.name}.service`,
+			unitName: `${this.configTool.WEB_BIN_NAME}.${options.name}`,
 			configurationPath: options.configurationPath,
 			createdAt: new Date(),
 		});
@@ -161,6 +160,8 @@ You can configure it with command "xuker service add '${name}' --help".`);
 		if (!fs.existsSync(logPath)) return;
 		return fs.readFileSync(logPath).toString();
 	}
+
+	abstract createEmptyConfigFile(filePath: string): Promise<void>;
 
 	protected abstract createNewService(service: ServiceInfo): Promise<void>;
 
